@@ -3,7 +3,14 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
-import Index from "./pages/Index";
+import Login from "./pages/Login";
+import Dashboard from "./pages/Dashboard";
+import Pendaftaran from "./pages/Pendaftaran";
+import Pemeriksaan from "./pages/Pemeriksaan";
+import Apotek from "./pages/Apotek";
+import Pembayaran from "./pages/Pembayaran";
+import DataPasien from "./pages/DataPasien";
+import DataObat from "./pages/DataObat";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -15,8 +22,14 @@ const App = () => (
       <Sonner />
       <BrowserRouter>
         <Routes>
-          <Route path="/" element={<Index />} />
-          {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+          <Route path="/" element={<Login />} />
+          <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/pendaftaran" element={<Pendaftaran />} />
+          <Route path="/pemeriksaan" element={<Pemeriksaan />} />
+          <Route path="/apotek" element={<Apotek />} />
+          <Route path="/pembayaran" element={<Pembayaran />} />
+          <Route path="/data-pasien" element={<DataPasien />} />
+          <Route path="/data-obat" element={<DataObat />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>
