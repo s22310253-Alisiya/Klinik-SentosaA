@@ -12,6 +12,8 @@ import Pembayaran from "./pages/Pembayaran";
 import DataPasien from "./pages/DataPasien";
 import DataObat from "./pages/DataObat";
 import NotFound from "./pages/NotFound";
+import Pengaturan from "./pages/Pengaturan";
+import ProtectedRoute from "@/components/ProtectedRoute";
 
 const queryClient = new QueryClient();
 
@@ -23,13 +25,70 @@ const App = () => (
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<Login />} />
-          <Route path="/dashboard" element={<Dashboard />} />
-          <Route path="/pendaftaran" element={<Pendaftaran />} />
-          <Route path="/pemeriksaan" element={<Pemeriksaan />} />
-          <Route path="/apotek" element={<Apotek />} />
-          <Route path="/pembayaran" element={<Pembayaran />} />
-          <Route path="/data-pasien" element={<DataPasien />} />
-          <Route path="/data-obat" element={<DataObat />} />
+          <Route
+            path="/dashboard"
+            element={
+              <ProtectedRoute allowedRoles={["admin", "dokter", "apoteker", "resepsionis", "administrasi"]}>
+                <Dashboard />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/pendaftaran"
+            element={
+              <ProtectedRoute allowedRoles={["admin", "resepsionis"]}>
+                <Pendaftaran />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/pemeriksaan"
+            element={
+              <ProtectedRoute allowedRoles={["admin", "dokter"]}>
+                <Pemeriksaan />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/apotek"
+            element={
+              <ProtectedRoute allowedRoles={["admin", "apoteker"]}>
+                <Apotek />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/pembayaran"
+            element={
+              <ProtectedRoute allowedRoles={["admin", "administrasi"]}>
+                <Pembayaran />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/data-pasien"
+            element={
+              <ProtectedRoute allowedRoles={["admin", "administrasi", "dokter"]}>
+                <DataPasien />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/data-obat"
+            element={
+              <ProtectedRoute allowedRoles={["admin", "apoteker"]}>
+                <DataObat />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/pengaturan"
+            element={
+              <ProtectedRoute allowedRoles={["admin"]}>
+                <Pengaturan />
+              </ProtectedRoute>
+            }
+          />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>

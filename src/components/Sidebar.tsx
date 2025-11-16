@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { NavLink } from "@/components/NavLink";
 import {
   LayoutDashboard,
@@ -14,13 +14,22 @@ import {
   X,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { getRole, logout } from "@/lib/auth";
 
 interface SidebarProps {
   role?: string;
 }
 
-const Sidebar = ({ role = "doctor" }: SidebarProps) => {
+const Sidebar = ({ role: propRole }: SidebarProps) => {
   const [collapsed, setCollapsed] = useState(false);
+  const [role, setRole] = useState<string>(propRole || "");
+
+  // Ambil role dari localStorage saat komponen pertama kali dimuat
+  useEffect(() => {
+    const r = getRole();
+    if (r) setRole(r);
+    else if (propRole) setRole(propRole);
+  }, [propRole]);
 
   const menuItems = [
     { title: "Dashboard", icon: LayoutDashboard, path: "/dashboard", roles: ["all"] },
@@ -93,7 +102,13 @@ const Sidebar = ({ role = "doctor" }: SidebarProps) => {
 
           {/* Footer */}
           <div className="border-t border-sidebar-border p-4">
-            <button className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all hover:bg-sidebar-accent">
+            <button
+              className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all hover:bg-sidebar-accent"
+              onClick={() => {
+                logout();
+                window.location.href = "/";
+              }}
+            >
               <LogOut className="h-5 w-5 flex-shrink-0" />
               {!collapsed && <span>Keluar</span>}
             </button>

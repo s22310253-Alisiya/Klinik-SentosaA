@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react";
 import Sidebar from "@/components/Sidebar";
 import PageHeader from "@/components/PageHeader";
 import StatCard from "@/components/StatCard";
@@ -7,18 +8,41 @@ import { Badge } from "@/components/ui/badge";
 import { LayoutDashboard, Users, FileText, Pill, AlertCircle, Clock } from "lucide-react";
 
 const Dashboard = () => {
-  const recentPatients = [
-    { id: "P001", name: "Ahmad Subandi", time: "08:30", status: "waiting" },
-    { id: "P002", name: "Siti Rahmawati", time: "09:00", status: "in-progress" },
-    { id: "P003", name: "Budi Santoso", time: "09:30", status: "completed" },
-    { id: "P004", name: "Dewi Kusuma", time: "10:00", status: "waiting" },
-  ];
+  const [totalPatients, setTotalPatients] = useState(0);
+  const [recentPatients, setRecentPatients] = useState<any[]>([]);
+  const [totalPrescriptions, setTotalPrescriptions] = useState(0);
+  const [totalPayments, setTotalPayments] = useState(0);
+  const [lowStockMeds, setLowStockMeds] = useState<any[]>([]);
+  const [totalMedicines, setTotalMedicines] = useState(0);
 
-  const lowStockMeds = [
-    { name: "Paracetamol 500mg", stock: 15, unit: "strip" },
-    { name: "Amoxicillin 500mg", stock: 8, unit: "strip" },
-    { name: "Vitamin C 1000mg", stock: 12, unit: "botol" },
-  ];
+  // Load data dari localStorage
+  useEffect(() => {
+    // Pasien
+    const patients = JSON.parse(localStorage.getItem("patients") || "[]");
+    setTotalPatients(patients.length);
+    // Ambil 4 pasien terbaru untuk recent list
+    const recent = patients.slice(-4).reverse().map((p: any, i: number) => ({
+      id: p.id,
+      name: p.nama,
+      time: new Date(p.terakhirKunjungan || Date.now()).toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit" }),
+      status: i === 0 ? "in-progress" : i < 2 ? "waiting" : "completed",
+    }));
+    setRecentPatients(recent);
+
+    // Pemeriksaan (resep aktif)
+    const pemeriksaan = JSON.parse(localStorage.getItem("pemeriksaan") || "[]");
+    setTotalPrescriptions(pemeriksaan.length);
+
+    // Pembayaran
+    const riwayatPembayaran = JSON.parse(localStorage.getItem("riwayatPembayaran") || "[]");
+    setTotalPayments(riwayatPembayaran.length);
+
+    // Obat - low stock dan total
+    const medicines = JSON.parse(localStorage.getItem("medicines") || "[]");
+    setTotalMedicines(medicines.length);
+    const lowStock = medicines.filter((m: any) => m.stok < 30).sort((a: any, b: any) => a.stok - b.stok).slice(0, 3);
+    setLowStockMeds(lowStock.map((m: any) => ({ name: m.nama, stock: m.stok, unit: m.satuan })));
+  }, []);
 
   const getStatusBadge = (status: string) => {
     const variants = {
@@ -28,6 +52,30 @@ const Dashboard = () => {
     };
     const config = variants[status as keyof typeof variants];
     return <Badge variant={config.variant}>{config.label}</Badge>;
+  };
+
+  const handleRefresh = () => {
+    // Reload semua data dari localStorage
+    const patients = JSON.parse(localStorage.getItem("patients") || "[]");
+    setTotalPatients(patients.length);
+    const recent = patients.slice(-4).reverse().map((p: any, i: number) => ({
+      id: p.id,
+      name: p.nama,
+      time: new Date(p.terakhirKunjungan || Date.now()).toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit" }),
+      status: i === 0 ? "in-progress" : i < 2 ? "waiting" : "completed",
+    }));
+    setRecentPatients(recent);
+
+    const pemeriksaan = JSON.parse(localStorage.getItem("pemeriksaan") || "[]");
+    setTotalPrescriptions(pemeriksaan.length);
+
+    const riwayatPembayaran = JSON.parse(localStorage.getItem("riwayatPembayaran") || "[]");
+    setTotalPayments(riwayatPembayaran.length);
+
+    const medicines = JSON.parse(localStorage.getItem("medicines") || "[]");
+    setTotalMedicines(medicines.length);
+    const lowStock = medicines.filter((m: any) => m.stok < 30).sort((a: any, b: any) => a.stok - b.stok).slice(0, 3);
+    setLowStockMeds(lowStock.map((m: any) => ({ name: m.nama, stock: m.stok, unit: m.satuan })));
   };
 
   return (
@@ -41,7 +89,7 @@ const Dashboard = () => {
             description="Ringkasan aktivitas hari ini"
             icon={LayoutDashboard}
             action={
-              <Button>
+              <Button onClick={handleRefresh}>
                 <Clock className="mr-2 h-4 w-4" />
                 Refresh Data
               </Button>
@@ -52,27 +100,27 @@ const Dashboard = () => {
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
             <StatCard
               title="Pasien Hari Ini"
-              value="24"
+              value={totalPatients.toString()}
               icon={Users}
-              trend={{ value: "12% dari kemarin", isPositive: true }}
+              trend={{ value: `${recentPatients.length} baru`, isPositive: true }}
               color="primary"
             />
             <StatCard
               title="Resep Aktif"
-              value="15"
+              value={totalPrescriptions.toString()}
               icon={FileText}
-              trend={{ value: "3 menunggu", isPositive: false }}
+              trend={{ value: `${totalPayments} terproses`, isPositive: true }}
               color="warning"
             />
             <StatCard
               title="Stok Menipis"
-              value="3"
+              value={lowStockMeds.length.toString()}
               icon={AlertCircle}
               color="destructive"
             />
             <StatCard
               title="Obat Tersedia"
-              value="156"
+              value={totalMedicines.toString()}
               icon={Pill}
               color="success"
             />

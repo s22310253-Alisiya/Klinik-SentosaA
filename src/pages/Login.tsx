@@ -23,8 +23,32 @@ const Login = () => {
     }
 
     // Simulasi login - dalam implementasi nyata akan menggunakan API
+    // Simpan user ke localStorage
+    const user = { email, role };
+    localStorage.setItem("user", JSON.stringify(user));
+
     toast.success("Login berhasil!");
-    navigate("/dashboard");
+
+    // Redirect sesuai role (admin -> dashboard, dokter -> pemeriksaan, apoteker -> apotek, resepsionis -> pendaftaran, administrasi -> data-pasien)
+    switch (role) {
+      case "admin":
+        navigate("/dashboard");
+        break;
+      case "dokter":
+        navigate("/pemeriksaan");
+        break;
+      case "apoteker":
+        navigate("/apotek");
+        break;
+      case "resepsionis":
+        navigate("/pendaftaran");
+        break;
+      case "administrasi":
+        navigate("/pembayaran");
+        break;
+      default:
+        navigate("/dashboard");
+    }
   };
 
   return (
