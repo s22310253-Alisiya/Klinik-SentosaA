@@ -20,46 +20,61 @@ const DataObat = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [medicines, setMedicines] = useState<Medicine[]>([]);
 
-  // --- INITIAL LOAD DARI LOCALSTORAGE ---
+  // Popup state
+  const [showAdd, setShowAdd] = useState(false);
+  const [selectedMedicine, setSelectedMedicine] = useState<Medicine | null>(null);
+
+  // Pilihan obat default
+  const daftarPilihanObat: Medicine[] = [
+    { id: "OB001", nama: "Paracetamol 500mg", kategori: "Analgesik", stok: 0, harga: 3000, satuan: "Strip" },
+    { id: "OB002", nama: "Amoxicillin 500mg", kategori: "Antibiotik", stok: 0, harga: 25000, satuan: "Strip" },
+    { id: "OB003", nama: "Vitamin C 1000mg", kategori: "Vitamin", stok: 0, harga: 15000, satuan: "Botol" },
+    { id: "OB004", nama: "Antasida", kategori: "Pencernaan", stok: 0, harga: 5000, satuan: "Strip" },
+    { id: "OB005", nama: "OBH Combi", kategori: "Batuk & Flu", stok: 0, harga: 18000, satuan: "Botol" },
+  ];
+
+  // Load awal dari localStorage
   useEffect(() => {
     const stored = localStorage.getItem("medicines");
     if (stored) {
       setMedicines(JSON.parse(stored));
     } else {
-      // DATA DEFAULT (HANYA PERTAMA KALI)
-      const defaultMedicines: Medicine[] = [
-        { id: "OB001", nama: "Paracetamol 500mg", kategori: "Analgesik", stok: 150, harga: 3000, satuan: "Strip" },
-        { id: "OB002", nama: "Amoxicillin 500mg", kategori: "Antibiotik", stok: 8, harga: 25000, satuan: "Strip" },
-        { id: "OB003", nama: "Vitamin C 1000mg", kategori: "Vitamin", stok: 12, harga: 15000, satuan: "Botol" },
-        { id: "OB004", nama: "Antasida", kategori: "Pencernaan", stok: 45, harga: 5000, satuan: "Strip" },
-        { id: "OB005", nama: "OBH Combi", kategori: "Batuk & Flu", stok: 22, harga: 18000, satuan: "Botol" },
-      ];
-
-      localStorage.setItem("medicines", JSON.stringify(defaultMedicines));
-      setMedicines(defaultMedicines);
+      localStorage.setItem("medicines", JSON.stringify([]));
     }
   }, []);
 
-  // --- DIPANGGIL DARI APOTIK UNTUK MENGURANGI STOK ---
-  const kurangiStok = (id: string, jumlah: number) => {
-    const updated = medicines.map((m) =>
-      m.id === id ? { ...m, stok: m.stok - jumlah } : m
-    );
+  // Fungsi tambah obat dari pilihan dropdown
+  const tambahObatBaru = () => {
+    if (!selectedMedicine) return;
 
+    const newMedicine = {
+      ...selectedMedicine,
+      stok: 20, // stok default
+    };
+
+    const updated = [...medicines, newMedicine];
     setMedicines(updated);
     localStorage.setItem("medicines", JSON.stringify(updated));
+
+    setShowAdd(false);
+    setSelectedMedicine(null);
   };
 
+  // Badge status stok
   const getStockBadge = (stock: number) => {
     if (stock < 15) {
-      return <Badge variant="destructive" className="gap-1"><AlertTriangle className="h-3 w-3" /> Menipis</Badge>;
+      return (
+        <Badge variant="destructive" className="gap-1">
+          <AlertTriangle className="h-3 w-3" /> Menipis
+        </Badge>
+      );
     } else if (stock < 30) {
       return <Badge variant="outline">Terbatas</Badge>;
     }
     return <Badge className="bg-success">Aman</Badge>;
   };
 
-  // FILTER SEARCH
+  // Filter search
   const filtered = medicines.filter(
     (m) =>
       m.nama.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -76,7 +91,7 @@ const DataObat = () => {
             title="Data Obat"
             description="Kelola stok dan harga obat"
             icon={Package}
-            action={<Button>Tambah Obat</Button>}
+            action={<Button onClick={() => setShowAdd(true)}>Tambah Obat</Button>}
           />
 
           <Card>
@@ -132,11 +147,50 @@ const DataObat = () => {
                   </tbody>
                 </table>
               </div>
-
             </CardContent>
           </Card>
         </div>
       </main>
+
+      {/* POPUP TAMBAH OBAT */}
+      {showAdd && (
+        <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center p-6">
+          <Card className="w-full max-w-md">
+            <CardContent className="p-6 space-y-4">
+              <h2 className="text-xl font-semibold">Tambah Obat</h2>
+
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Pilih Obat</label>
+                <select
+                  className="w-full border rounded p-2"
+                  value={selectedMedicine?.id || ""}
+                  onChange={(e) => {
+                    const obat = daftarPilihanObat.find((o) => o.id === e.target.value);
+                    setSelectedMedicine(obat || null);
+                  }}
+                >
+                  <option value="">-- Pilih Obat --</option>
+                  {daftarPilihanObat.map((o) => (
+                    <option key={o.id} value={o.id}>
+                      {o.nama} ({o.kategori})
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="flex justify-end gap-2 pt-4">
+                <Button variant="outline" onClick={() => setShowAdd(false)}>
+                  Batal
+                </Button>
+
+                <Button onClick={tambahObatBaru} disabled={!selectedMedicine}>
+                  Simpan
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      )}
     </div>
   );
 };
